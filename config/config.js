@@ -50,8 +50,9 @@ var CONFIG = {
   REWARD_IMAGE: 'img/reward.gif', // the image to show on a reward trial
   REWARD_SOUND: 'mp3/reward-coin-drop.mp3', // path to file (use mp3 if possible for browser compatibility), set to null if no sound
   SHOW_ACCURACY_AT_END: false, // show "you responded correctly on X of N trials" at the end screen?
-  SAVE_DATA_TYPE: 'cognition', // How data should be saved. Current options are 'tmb' for TestMyBrain, 'cognition' for cognition.run, and 'local' for downloading a CSV file.
-  ID_MESSAGE: 'Please enter your ID in the text box below:'
+  SAVE_DATA_TYPE: 'php', // How data should be saved. Current options are 'tmb' for TestMyBrain, 'cognition' for cognition.run, 'php' for PHP backend, and 'local' for downloading a CSV file.
+  ID_MESSAGE: 'Please enter your ID in the text box below:',
+  VERSION: '1.0.1' // Used while piloting and making changes, to know what version data is from
 }
 
 // SECTION 2 //

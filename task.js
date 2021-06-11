@@ -1,3 +1,4 @@
+
 /* add TMB script if using TMB to save data */
 if (CONFIG.SAVE_DATA_TYPE == 'tmb') {
   var head = document.getElementsByTagName('head')[0];
@@ -31,7 +32,7 @@ var id_entry = {
   },
   on_finish: function (data) {
     jsPsych.data.addProperties({
-      subject_id: data.responses.Q0
+      participant_id: data.responses.Q0
     });
   }
 }
@@ -503,13 +504,31 @@ var save_data = {
       var score = 0;
       var outcomes = {};
       tmbSubmitToServer(results, score, outcomes);
-    }
-    if (CONFIG.SAVE_DATA_TYPE == 'local') {
+    } else if (CONFIG.SAVE_DATA_TYPE == 'local') {
       var randomID = jsPsych.randomization.randomID(6);
       jsPsych.data.get().ignore("internal_node_id").ignore("key_press").localSave('csv', `prt-data-${randomID}.csv`)
-    }
-    if (CONFIG.SAVE_DATA_TYPE == 'cognition') {
+    } else if (CONFIG.SAVE_DATA_TYPE == 'cognition') {
       return; // don't need to do anything because cognition.run automatically saves data.
+    } else if (CONFIG.SAVE_DATA_TYPE == 'php') {
+      // Post data to the php backend
+      var data = jsPsych.data.get()
+      var participant_id = data.select('participant_id').values[0];
+      var session_id = data.select('session_id').values[0];
+      var csv = data.ignore("internal_node_id").ignore("key_press").csv()
+
+      var bundle = {
+          version: CONFIG.VERSION,
+          participant_id: participant_id,
+          session_id: session_id,
+          csv: csv,
+      }
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "backend.php", true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      console.log("Sending data");
+      xhr.send(JSON.stringify(bundle));
+      console.log("Sent data");
     }
   }
 }
@@ -528,21 +547,17 @@ var final_screen = {
     var output_html = `<p>You have completed the task!</p>`
 
     if (CONFIG.SHOW_ACCURACY_AT_END) {
-
       output_html += `<p>You responded correctly on ${correct_trial_count} of ${total_trial_count} trials.</p>`
     }
     if (CONFIG.REWARD_AMOUNT != null && CONFIG.REWARD_AMOUNT != 0) {
       output_html += `<p>You earned $${total_earned.toFixed(2)}!</p>`
     }
     output_html += `<p>Please return to the REDCap tab to finish the surveys.
-           If you have any issues returning to REDCap, email Kaylee at <a style="color: DodgerBlue" href="mailto:knull@mclean.harvard.edu">knull@mclean.harvard.edu</a> and provide your worker ID.</p>`
+           If you have any issues returning to REDCap, email TODO at <a style="color: DodgerBlue" href="mailto:TODO">TODO</a> and provide your worker ID.</p>`
     return output_html;
   },
   on_load: function () {
-    if (CONFIG.SAVE_DATA_TYPE == 'cognition') {
-      // if running on cognition.run, this seems to help with saving final bit of data and marking the task as finalized.
-      jsPsych.endExperiment();
-    }
+    jsPsych.endExperiment();
   }
 }
 
@@ -550,12 +565,18 @@ var final_screen = {
 /* initialization */
 var timeline = [];
 
+// Embed version of task in data for reference
+jsPsych.data.addProperties({
+  version: CONFIG.VERSION
+});
+
 // Pull participant id from query string if possible
 var params = new URLSearchParams(window.location.search);
 
 if (params.has('participant')) {
   jsPsych.data.addProperties({
-    subject_id: params.get('participant')
+    participant_id: params.get('participant'),
+    session_id: params.get('session')
   });
 } else {
   timeline.push(id_entry);
