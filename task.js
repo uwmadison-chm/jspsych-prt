@@ -31,7 +31,7 @@ var id_entry = {
   },
   on_finish: function (data) {
     jsPsych.data.addProperties({
-      subject_id: JSON.parse(data.responses).Q0
+      subject_id: data.responses.Q0
     });
   }
 }
@@ -550,7 +550,16 @@ var final_screen = {
 /* initialization */
 var timeline = [];
 
-timeline.push(id_entry);
+// Pull participant id from query string if possible
+var params = new URLSearchParams(window.location.search);
+
+if (params.has('participant')) {
+  jsPsych.data.addProperties({
+    subject_id: params.get('participant')
+  });
+} else {
+  timeline.push(id_entry);
+}
 timeline.push(instructions_intro);
 timeline.push(practice_procedure);
 timeline.push(instructions_feedback);
